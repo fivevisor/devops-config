@@ -10,6 +10,11 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: Create .env file
+              run: |
+                  touch .env
+                  echo '${{ toJson(secrets) }}' | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' > .env
+
             - name: Connect to SSH and Update
               uses: appleboy/ssh-action@master
               with:
@@ -19,5 +24,6 @@ jobs:
                   script: |
                       cd /opt/devops-config
                       git pull origin main
+                      echo '${{ toJson(secrets) }}' | jq -r 'to_entries | .[] | "\(.key)=\(.value)"' > .env
                       docker-compose down
                       docker-compose up -d --build
