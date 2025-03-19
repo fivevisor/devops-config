@@ -1,5 +1,6 @@
 services:
     web:
+        container_name: web
         build:
             context: ../web
             dockerfile: Dockerfile
