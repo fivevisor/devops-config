@@ -1,0 +1,25 @@
+services:
+    web:
+        build:
+            context: ../web
+            dockerfile: Dockerfile
+        ports:
+            - '3000:3000'
+        depends_on:
+            - postgresql
+            - redis
+
+    postgresql:
+        image: postgres:latest
+        environment:
+            POSTGRES_USER: TODO
+            POSTGRES_PASSWORD: TODO
+            POSTGRES_DB: TODO
+        volumes:
+            - postgresql:/var/lib/postgresql/data
+
+    redis:
+        image: redis:latest
+
+volumes:
+    postgresql:
