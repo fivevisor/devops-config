@@ -10,6 +10,11 @@ services:
         depends_on:
             - postgresql
             - redis
+        deploy:
+            resources:
+                limits:
+                    memory: '2g'
+                    cpus: '2'
 
     postgresql:
         image: postgres:latest
