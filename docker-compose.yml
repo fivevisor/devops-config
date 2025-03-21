@@ -1,6 +1,7 @@
 services:
     web:
         image: web
+        image_name: web
         container_name: web
         build:
             context: ../web
