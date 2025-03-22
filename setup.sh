@@ -17,15 +17,15 @@ function require_input() {
     echo "$input_value"
 }
 
-# General Update
-sudo apt update && sudo apt upgrade -y
+# # General Update
+# sudo apt update && sudo apt upgrade -y
 
-# Docker Setup
-sudo apt install -y docker.io
-sudo systemctl enable --now docker
+# # Docker Setup
+# sudo apt install -y docker.io
+# sudo systemctl enable --now docker
 
-# Docker Compose Setup
-sudo apt install -y docker-compose
+# # Docker Compose Setup
+# sudo apt install -y docker-compose
 
 # Generating SSH Key
 EMAIL_ADDRESS=$(require_input "Enter your e-mail address" "Email Address")
