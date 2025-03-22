@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # General Update
 sudo apt update && sudo apt upgrade -y
 
@@ -9,15 +11,47 @@ sudo systemctl enable --now docker
 sudo apt install -y docker-compose
 
 # Generating SSH Key
-echo "Enter your e-mail address:"
-read EMAIL_ADDRESS
+echo "Enter your GitHub username:"
+read GITHUB_USER
 
-if [[ -z "$EMAIL_ADDRESS" ]]; then
-    echo "❌ Error: E-mail address cannot be empty!"
+if [[ -z "$GITHUB_USER" ]]; then
+    echo "❌ Error: GitHub username cannot be empty!"
     exit 1
 fi
 
-ssh-keygen -t ed25519 -C $EMAIL_ADDRESS -f ~/.ssh/id_ed25519 -N ""
+echo "Enter your GitHub personal access token:"
+read -s GITHUB_TOKEN
+
+if [[ -z "$GITHUB_TOKEN" ]]; then
+    echo "❌ Error: GitHub personal access token cannot be empty!"
+    exit 1
+fi
+
+SSH_KEY=$(cat ~/.ssh/id_ed25519.pub | tr -d '\n')
+EXISTING_KEYS=$(curl -s -H "Authorization: token $GITHUB_TOKEN" \
+    https://api.github.com/user/keys)
+KEY_ID=$(echo "$EXISTING_KEYS" | jq -r ".[] | select(.key == \"$SSH_KEY\") | .id")
+
+if [[ -n "$KEY_ID" ]]; then
+    echo "🔄 Deleting existing SSH key (ID: $KEY_ID)..."
+    curl -X DELETE https://api.github.com/user/keys/$KEY_ID \
+        -H "Authorization: token $GITHUB_TOKEN"
+    echo "✅ Old SSH key deleted."
+fi
+
+echo "🔄 Adding new SSH key..."
+
+RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST https://api.github.com/user/keys \
+    -H "Authorization: token $GITHUB_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"title": "Ubuntu Server Key", "key": "'"$SSH_KEY"'"}')
+
+if [[ "$RESPONSE" -eq 201 ]]; then
+    echo "✅ New SSH key added successfully!"
+else
+    echo "❌ Failed to add SSH key (HTTP $RESPONSE)"
+    exit 1
+fi
 
 # Adding SSH Key to GitHub
 echo "Enter your GitHub username:"
