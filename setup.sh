@@ -18,8 +18,11 @@ echo "Enter your GitHub username:"
 read GITHUB_USER
 echo "Enter your GitHub personal access token:"
 read GITHUB_TOKEN
-SSH_KEY=$(cat ~/.ssh/id_ed25519.pub)
-curl -u "$GITHUB_USER:$GITHUB_TOKEN" --data '{"title":"Ubuntu Server Key","key":"'$SSH_KEY'"}' https://api.github.com/user/keys
+SSH_KEY=$(cat ~/.ssh/id_ed25519.pub | tr -d '\n')
+curl -X POST https://api.github.com/user/keys \
+    -H "Authorization: token $GITHUB_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"title": "Ubuntu Server Key", "key": "'"$SSH_KEY"'"}'
 
 # Trigger GitHub Workflows
 echo "Enter your GitHub organisation name:"
