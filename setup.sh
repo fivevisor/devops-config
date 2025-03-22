@@ -1,3 +1,21 @@
+set -e
+
+function require_input() {
+    local prompt="$1"
+    local var_name="$2"
+    local input_value=""
+
+    while [[ -z "$input_value" ]]; do
+        echo -n "$prompt: "
+        read input_value
+        if [[ -z "$input_value" ]]; then
+            echo "❌ Error: $var_name cannot be empty!"
+        fi
+    done
+
+    echo "$input_value"
+}
+
 # General Update
 sudo apt update && sudo apt upgrade -y
 
@@ -9,15 +27,20 @@ sudo systemctl enable --now docker
 sudo apt install -y docker-compose
 
 # Generating SSH Key
-echo "Enter your e-mail address:"
-read EMAIL_ADDRESS
+EMAIL_ADDRESS=$(require_input "Enter your e-mail address" "Email Address")
 ssh-keygen -t ed25519 -C $EMAIL_ADDRESS -f ~/.ssh/id_ed25519 -N ""
 
 # Adding SSH Key to GitHub
-echo "Enter your GitHub username:"
-read GITHUB_USER
-echo "Enter your GitHub personal access token:"
+GITHUB_USER=$(require_input "Enter your GitHub username" "GitHub Username")
+echo -n "Enter your GitHub personal access token: "
 read -s GITHUB_TOKEN
+echo ""
+
+if [[ -z "$GITHUB_TOKEN" ]]; then
+    echo "❌ Error: GitHub Token cannot be empty!"
+    exit 1
+fi
+
 SSH_KEY=$(cat ~/.ssh/id_ed25519.pub | tr -d '\n')
 curl -X POST https://api.github.com/user/keys \
     -H "Authorization: token $GITHUB_TOKEN" \
@@ -25,9 +48,8 @@ curl -X POST https://api.github.com/user/keys \
     -d '{"title": "Ubuntu Server Key", "key": "'"$SSH_KEY"'"}'
 
 # Trigger GitHub Workflows
-echo "Enter your GitHub organisation name:"
-read GITHUB_ORG
-echo "Enter repositorys separated by a space:"
+GITHUB_ORG=$(require_input "Enter your GitHub organisation name" "GitHub Organisation")
+echo "Enter repository names separated by a space:"
 read -a REPOS
 
 if [ ${#REPOS[@]} -eq 0 ]; then
