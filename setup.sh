@@ -30,9 +30,9 @@ read GITHUB_ORG
 echo "Enter repositorys separated by a space:"
 read REPOS
 for REPO in "${REPOS[@]}"; do
-  curl -X POST -u "$GITHUB_USER:$GITHUB_TOKEN" \
+  curl -X POST "https://api.github.com/repos/$GITHUB_ORG/$REPO/actions/workflows/main.yml/dispatches" \
+    -H "Authorization: token $GITHUB_TOKEN" \
     -H "Accept: application/vnd.github.v3+json" \
-    "https://api.github.com/repos/$GITHUB_ORG/$REPO/actions/workflows/main.yml/dispatches" \
     -d '{"ref":"main"}'
 done
 
