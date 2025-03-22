@@ -28,7 +28,7 @@ curl -X POST https://api.github.com/user/keys \
 echo "Enter your GitHub organisation name:"
 read GITHUB_ORG
 echo "Enter repositorys separated by a space:"
-read REPOS
+read -a REPOS
 for REPO in "${REPOS}"; do
   curl -X POST "https://api.github.com/repos/$GITHUB_ORG/$REPO/actions/workflows/main.yml/dispatches" \
     -H "Authorization: token $GITHUB_TOKEN" \
