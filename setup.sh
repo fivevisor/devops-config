@@ -1,55 +1,61 @@
-set -e
+# General Update
+sudo apt update && sudo apt upgrade -y
 
-function require_input() {
-    local prompt="$1"
-    local var_name="$2"
-    local input_value=""
+# Docker Setup
+sudo apt install -y docker.io
+sudo systemctl enable --now docker
 
-    while [[ -z "$input_value" ]]; do
-        echo -n "$prompt: "
-        read input_value
-
-        if [[ -z "$input_value" ]]; then
-            echo "❌ Error: $var_name cannot be empty!"
-        fi
-    done
-
-    echo "$input_value"
-}
-
-# # General Update
-# sudo apt update && sudo apt upgrade -y
-
-# # Docker Setup
-# sudo apt install -y docker.io
-# sudo systemctl enable --now docker
-
-# # Docker Compose Setup
-# sudo apt install -y docker-compose
+# Docker Compose Setup
+sudo apt install -y docker-compose
 
 # Generating SSH Key
-EMAIL_ADDRESS=$(require_input "Enter your e-mail address" "Email Address")
+echo "Enter your e-mail address:"
+read EMAIL_ADDRESS
+
+if [[ -z "$EMAIL_ADDRESS" ]]; then
+    echo "❌ Error: E-mail address cannot be empty!"
+    exit 1
+fi
 
 ssh-keygen -t ed25519 -C $EMAIL_ADDRESS -f ~/.ssh/id_ed25519 -N ""
 
 # Adding SSH Key to GitHub
-GITHUB_USER=$(require_input "Enter your GitHub username" "GitHub Username")
-GITHUB_TOKEN=$(require_input "Enter your GitHub personal access token" "GitHub Personal Access Token")
-SSH_KEY=$(cat ~/.ssh/id_ed25519.pub | tr -d '\n')
+echo "Enter your GitHub username:"
+read GITHUB_USER
 
+if [[ -z "$GITHUB_USER" ]]; then
+    echo "❌ Error: GitHub username cannot be empty!"
+    exit 1
+fi
+
+echo "Enter your GitHub personal access token:"
+read -s GITHUB_TOKEN
+
+if [[ -z "$GITHUB_TOKEN" ]]; then
+    echo "❌ Error: GitHub personal access token cannot be empty!"
+    exit 1
+fi
+
+SSH_KEY=$(cat ~/.ssh/id_ed25519.pub | tr -d '\n')
 curl -X POST https://api.github.com/user/keys \
     -H "Authorization: token $GITHUB_TOKEN" \
     -H "Content-Type: application/json" \
     -d '{"title": "Ubuntu Server Key", "key": "'"$SSH_KEY"'"}'
 
 # Trigger GitHub Workflows
-GITHUB_ORG=$(require_input "Enter your GitHub organisation name" "GitHub Organisation")
+echo "Enter your GitHub organisation name:"
+read GITHUB_ORG
+
+if [[ -z "$GITHUB_ORG" ]]; then
+    echo "❌ Error: GitHub organisation name cannot be empty!"
+    exit 1
+fi
 
 echo "Enter repositorys separated by a space:"
 read -a REPOS
 
-if [ ${#REPOS[@]} -eq 0 ]; then
-    echo "❌ Error: No repositories entered. Exiting..."
+if [[ -z "$REPOS" ]]; then
+    echo "❌ Error: Repositorys cannot be empty!"
     exit 1
 fi
 
