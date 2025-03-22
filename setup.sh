@@ -8,6 +8,7 @@ function require_input() {
     while [[ -z "$input_value" ]]; do
         echo -n "$prompt: "
         read input_value
+
         if [[ -z "$input_value" ]]; then
             echo "❌ Error: $var_name cannot be empty!"
         fi
